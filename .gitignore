@@ -1,0 +1,22 @@
+# .env 파일 무시
+.env
+
+# Python 관련 파일 무시
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 가상 환경 무시
+venv/
+env/
+ENV/
+
+# Streamlit 관련 파일 무시
+.streamlit/
+
+# Chroma DB 관련 파일 무시 (필요한 경우)
+chroma_db/
+
+# 기타 일반적인 무시 파일
+.DS_Store
+*.log
