@@ -4,6 +4,8 @@ from langchain.chat_models import ChatOpenAI
 from langchain.chains import ConversationalRetrievalChain
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import Chroma
+from langchain.document_loaders import DirectoryLoader
+from langchain.text_splitter import CharacterTextSplitter
 
 # Streamlit 앱 설정
 st.title("RAG Chatbot")
@@ -11,12 +13,25 @@ st.title("RAG Chatbot")
 # OpenAI API 키 설정 (Streamlit Secrets에서 가져오기)
 os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
 
+# 문서 로드 및 벡터 저장소 생성 (처음 실행 시에만)
+@st.cache_resource
+def load_documents_and_create_vectorstore():
+    loader = DirectoryLoader("/documents", glob="**/*.txt")
+    documents = loader.load()
+    
+    text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
+    texts = text_splitter.split_documents(documents)
+    
+    embeddings = OpenAIEmbeddings()
+    vectorstore = Chroma.from_documents(texts, embeddings, persist_directory="./chroma_db")
+    
+    return vectorstore
+
 # 벡터 저장소 로드
-embeddings = OpenAIEmbeddings()
-vectorstore = Chroma(persist_directory="./chroma_db", embedding_function=embeddings)
+vectorstore = load_documents_and_create_vectorstore()
 
 # ChatOpenAI 모델 초기화
-llm = ChatOpenAI(model_name="gpt-4-0613", temperature=0)
+llm = ChatOpenAI(model_name="gpt-4o-mini", temperature=0)
 
 # ConversationalRetrievalChain 생성
 qa_chain = ConversationalRetrievalChain.from_llm(
@@ -46,3 +61,9 @@ if user_input:
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.write(message["content"])
+
+# 소스 문서 표시 (선택적)
+if st.checkbox("소스 문서 표시"):
+    st.write("참조된 소스 문서:")
+    for doc in response.get("source_documents", []):
+        st.write(doc.page_content)

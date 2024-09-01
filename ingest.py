@@ -1,11 +1,15 @@
 import os
+from dotenv import load_dotenv
 from langchain.document_loaders import TextLoader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import Chroma
 
-# OpenAI API 키 설정 (환경 변수로 설정하는 것이 좋습니다)
-os.environ["OPENAI_API_KEY"] = "your-api-key-here"
+# .env 파일에서 환경 변수 로드
+load_dotenv()
+
+# OpenAI API 키를 환경 변수에서 가져옴
+openai_api_key = os.getenv("OPENAI_API_KEY")
 
 # 문서 로드
 loader = TextLoader("path/to/your/document.txt")
